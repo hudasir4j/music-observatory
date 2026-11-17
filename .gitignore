@@ -1,0 +1,15 @@
+# Virtual environment — local only, never commit
+.venv/
+
+# Secrets — never commit real keys
+.env
+
+# Python junk
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# OS junk
+.DS_Store
