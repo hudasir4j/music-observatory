@@ -1,4 +1,4 @@
-from music_observatory.classify import classify_track
+from music_observatory.classify_hybrid import classify_track_hybrid
 from music_observatory.db import get_connection
 
 def apply_moods() -> None:
@@ -8,11 +8,12 @@ def apply_moods() -> None:
             tracks = cur.fetchall()
 
             for spotify_id, name, duration_ms in tracks:
-                mood = classify_track(name, duration_ms)
+                mood, source, score = classify_track_hybrid(name, duration_ms)
                 cur.execute(
                     "UPDATE tracks SET mood = %s WHERE spotify_id = %s;",
                     (mood, spotify_id),
                 )
+                print(f"{name} → {mood} ({source}, ml_score={score:.3f})")
 
         conn.commit()
 
