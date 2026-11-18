@@ -10,7 +10,7 @@ def transform_track(track: dict) -> tuple:
     return (spotify_id, name, artists, album, duration_ms)
 
 
-def load_tracks(row: list[tuple]) -> int:
+def load_tracks(rows: list[tuple]) -> int:
     sql = """
         INSERT INTO tracks (spotify_id, name, artists, album, duration_ms)
         VALUES (%s, %s, %s, %s, %s)
