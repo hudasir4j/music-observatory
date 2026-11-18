@@ -9,8 +9,31 @@ from music_observatory.apply_moods import apply_moods
 from music_observatory.ingest_search import load_tracks, transform_track
 from music_observatory.search_tracks import search_tracks
 
+import os
+from collections import Counter
+
+from fastapi import HTTPException, Request
+from fastapi.responses import FileResponse, RedirectResponse
+from starlette.middleware.sessions import SessionMiddleware
+
+from music_observatory.classify_hybrid import classify_track_hybrid
+from music_observatory.spotify_oauth import (
+    build_login_url,
+    exchange_code_for_token,
+    fetch_top_tracks,
+    new_state,
+    fetch_me,
+)
+
+from music_observatory.save_brief import save_brief
+
 
 app = FastAPI(title = "Music Observatory", version="0.1.0")
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SESSION_SECRET", "dev-insecure-secret"),
+)
 
 @app.get("/")
 def root():
@@ -116,3 +139,92 @@ STATIC_DIR = Path(__file__).parent / "static"
 @app.get("/app")
 def app_ui():
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/auth/login")
+def auth_login(request: Request):
+    state = new_state()
+    request.session["oauth_state"] = state
+    return RedirectResponse(build_login_url(state))
+
+
+@app.get("/auth/callback")
+def auth_callback(request: Request, code: str | None = None, state: str | None = None):
+    if not code or not state:
+        raise HTTPException(status_code=400, detail="Missing code/state from Spotify")
+
+    expected = request.session.get("oauth_state")
+    if not expected or state != expected:
+        raise HTTPException(status_code=400, detail="Invalid OAuth state")
+
+    token_data = exchange_code_for_token(code)
+    access_token = token_data.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=400, detail="No access_token in Spotify response")
+
+    request.session["spotify_access_token"] = access_token
+    request.session.pop("oauth_state", None)
+
+    return RedirectResponse("/brief", status_code=303)
+
+
+@app.get("/auth/logout")
+def auth_logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/brief", status_code=303)
+
+
+@app.get("/api/brief")
+def api_brief(request: Request):
+    access_token = request.session.get("spotify_access_token")
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    time_range = "short_term"
+    me = fetch_me(access_token)
+    spotify_user_id = me["id"]
+    display_name = me.get("display_name")
+
+    items = fetch_top_tracks(access_token, limit=20, time_range=time_range)
+
+    tracks = []
+    for t in items:
+        name = t.get("name") or "(no name)"
+        duration_ms = t.get("duration_ms")
+        artists = ", ".join(a.get("name", "?") for a in t.get("artists", []))
+        mood, source, score = classify_track_hybrid(name, duration_ms)
+        tracks.append(
+            {
+                "spotify_id": t.get("id"),
+                "name": name,
+                "artists": artists,
+                "duration_ms": duration_ms,
+                "mood": mood,
+                "source": source,
+                "ml_score": round(score, 3),
+            }
+        )
+
+    brief_id = save_brief(
+        spotify_user_id=spotify_user_id,
+        display_name=display_name,
+        time_range=time_range,
+        tracks=tracks,
+    )
+
+    counts = Counter(t["mood"] for t in tracks)
+    summary = [{"mood": mood, "count": count} for mood, count in counts.most_common()]
+
+    return {
+        "brief_id": brief_id,
+        "user": {"spotify_user_id": spotify_user_id, "display_name": display_name},
+        "time_range": time_range,
+        "count": len(tracks),
+        "summary": summary,
+        "tracks": tracks,
+    }
+
+
+@app.get("/brief")
+def brief_page():
+    return FileResponse(STATIC_DIR / "brief.html")
