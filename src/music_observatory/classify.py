@@ -17,7 +17,7 @@ def classify_track(name: str, duration_ms: int | None) -> str:
 
     if duration_ms is not None:
         if duration_ms < 180_000:
-            return "locked in"
+            return "locked_in"
         if duration_ms > 270_000:
             return "chill"
     

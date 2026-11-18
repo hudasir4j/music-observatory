@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Music Observatory</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a222c;
+      --text: #e7eef7;
+      --muted: #9aa8b7;
+      --accent: #3d9cf0;
+      --line: #2a3542;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #1b2a3a, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.25rem 3rem;
+    }
+    main { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; margin: 0 0 0.35rem; letter-spacing: -0.02em; }
+    .sub { color: var(--muted); margin-bottom: 1.5rem; }
+    form {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    input[type="text"] {
+      flex: 1;
+      min-width: 220px;
+      padding: 0.75rem 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 1rem;
+    }
+    button {
+      padding: 0.75rem 1rem;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #041018;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .status { color: var(--muted); min-height: 1.25rem; margin-bottom: 1rem; }
+    .error { color: #ff8f8f; }
+    section {
+      background: color-mix(in srgb, var(--panel) 90%, black);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    h2 { font-size: 1rem; margin: 0 0 0.75rem; color: var(--muted); font-weight: 600; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li {
+      padding: 0.65rem 0;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    li:first-child { border-top: 0; }
+    .mood {
+      color: var(--accent);
+      font-variant: tabular-nums;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Music Observatory</h1>
+    <p class="sub">Search Spotify, save tracks, see rule-based moods.</p>
+
+    <form id="ingest-form">
+      <input id="query" type="text" placeholder="e.g. heartbreak hotel" required />
+      <button type="submit" id="submit-btn">Ingest</button>
+    </form>
+    <p id="status" class="status"></p>
+
+    <section>
+      <h2>Latest ingest results</h2>
+      <ul id="results"></ul>
+    </section>
+
+    <section>
+      <h2>Mood summary (all saved tracks)</h2>
+      <ul id="summary"></ul>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("ingest-form");
+    const queryInput = document.getElementById("query");
+    const statusEl = document.getElementById("status");
+    const resultsEl = document.getElementById("results");
+    const summaryEl = document.getElementById("summary");
+    const submitBtn = document.getElementById("submit-btn");
+
+    async function loadSummary() {
+      const res = await fetch("/moods/summary");
+      if (!res.ok) throw new Error("Failed to load mood summary");
+      const data = await res.json();
+      summaryEl.innerHTML = "";
+      for (const row of data.summary) {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${row.mood}</span><span class="mood">${row.count}</span>`;
+        summaryEl.appendChild(li);
+      }
+    }
+
+    function renderTracks(tracks) {
+      resultsEl.innerHTML = "";
+      if (!tracks.length) {
+        resultsEl.innerHTML = "<li>No tracks returned.</li>";
+        return;
+      }
+      for (const t of tracks) {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span><strong>${t.name}</strong> — ${t.artists}</span>
+          <span class="mood">${t.mood ?? "unlabeled"}</span>
+        `;
+        resultsEl.appendChild(li);
+      }
+    }
+
+    form.addEventListener("submit", async (event) => {
+      // Stop the browser from doing a full page reload on submit
+      event.preventDefault();
+
+      const query = queryInput.value.trim();
+      if (!query) return;
+
+      statusEl.textContent = "Ingesting...";
+      statusEl.classList.remove("error");
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch("/ingest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, limit: 5 }),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Ingest failed (${res.status}): ${text}`);
+        }
+
+        const data = await res.json();
+        renderTracks(data.tracks || []);
+        await loadSummary();
+        statusEl.textContent = `Saved/loaded ${data.count ?? 0} track(s) for “${data.query}”.`;
+      } catch (err) {
+        statusEl.textContent = String(err.message || err);
+        statusEl.classList.add("error");
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Load summary once when the page opens
+    loadSummary().catch((err) => {
+      statusEl.textContent = String(err.message || err);
+      statusEl.classList.add("error");
+    });
+  </script>
+</body>
+</html>

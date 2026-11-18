@@ -1,3 +1,6 @@
+from pathlib import Path
+from fastapi.responses import FileResponse
+
 from fastapi import FastAPI
 from music_observatory.db import get_connection
 
@@ -107,3 +110,9 @@ def ingest_tracks(body: IngestRequest):
         "count": len(tracks),
         "tracks": tracks,
     }
+
+STATIC_DIR = Path(__file__).parent / "static"
+
+@app.get("/app")
+def app_ui():
+    return FileResponse(STATIC_DIR / "index.html")
