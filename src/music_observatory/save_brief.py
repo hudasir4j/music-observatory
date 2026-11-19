@@ -78,3 +78,26 @@ def save_brief(
         conn.commit()
 
     return brief_id
+
+def mood_headline(summary: list[dict], display_name: str | None = None) -> str:
+    """Build a one-line product headline from mood counts."""
+    if not summary:
+        who = display_name or "You"
+        return f"{who}: no tracks in this brief yet."
+
+    top = summary[0]
+    mood = top["mood"]
+    count = top["count"]
+    total = sum(item["count"] for item in summary)
+    pct = round(100 * count / total) if total else 0
+    who = display_name or "You"
+
+    pretty = {
+        "going_thru_it": "going through it",
+        "locked_in": "locked in",
+        "hype": "hype",
+        "chill": "chill",
+        "unclassified": "unclassified",
+    }.get(mood, mood)
+
+    return f"{who}: you're mostly {pretty} right now ({pct}% of this brief)."

@@ -25,7 +25,7 @@ from music_observatory.spotify_oauth import (
     fetch_me,
 )
 
-from music_observatory.save_brief import save_brief
+from music_observatory.save_brief import save_brief, mood_headline
 
 
 app = FastAPI(title = "Music Observatory", version="0.1.0")
@@ -221,10 +221,80 @@ def api_brief(request: Request):
         "time_range": time_range,
         "count": len(tracks),
         "summary": summary,
+        "headline": mood_headline(summary, display_name),
         "tracks": tracks,
+        "from_cache": False,
     }
 
 
 @app.get("/brief")
 def brief_page():
     return FileResponse(STATIC_DIR / "brief.html")
+
+
+@app.get("/api/brief/latest")
+def api_brief_latest(request: Request):
+    access_token = request.session.get("spotify_access_token")
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    me = fetch_me(access_token)
+    spotify_user_id = me["id"]
+    display_name = me.get("display_name")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, time_range, created_at
+                FROM briefs
+                WHERE spotify_user_id = %s
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (spotify_user_id,),
+            )
+            brief_row = cur.fetchone()
+            if not brief_row:
+                raise HTTPException(status_code=404, detail="No saved brief yet")
+
+            brief_id, time_range, created_at = brief_row
+
+            cur.execute(
+                """
+                SELECT spotify_id, name, artists, duration_ms, mood, source, ml_score
+                FROM brief_tracks
+                WHERE brief_id = %s
+                ORDER BY name
+                """,
+                (brief_id,),
+            )
+            rows = cur.fetchall()
+
+    tracks = [
+        {
+            "spotify_id": spotify_id,
+            "name": name,
+            "artists": artists,
+            "duration_ms": duration_ms,
+            "mood": mood,
+            "source": source,
+            "ml_score": ml_score,
+        }
+        for spotify_id, name, artists, duration_ms, mood, source, ml_score in rows
+    ]
+
+    counts = Counter(t["mood"] for t in tracks if t["mood"])
+    summary = [{"mood": m, "count": c} for m, c in counts.most_common()]
+
+    return {
+        "brief_id": brief_id,
+        "created_at": created_at.isoformat() if created_at else None,
+        "user": {"spotify_user_id": spotify_user_id, "display_name": display_name},
+        "time_range": time_range,
+        "count": len(tracks),
+        "summary": summary,
+        "headline": mood_headline(summary, display_name),
+        "tracks": tracks,
+        "from_cache": True,
+    }
