@@ -35,3 +35,15 @@ CREATE TABLE IF NOT EXISTS brief_tracks (
     ml_score     DOUBLE PRECISION,
     PRIMARY KEY (brief_id, spotify_id)
 );
+
+
+CREATE TABLE IF NOT EXISTS track_labels (
+    spotify_id      TEXT PRIMARY KEY,
+    name            TEXT NOT NULL,
+    artists         TEXT NOT NULL,
+    mood_human      TEXT NOT NULL,
+    mood_model      TEXT,
+    model_source    TEXT,
+    ml_score        DOUBLE PRECISION,
+    labeled_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

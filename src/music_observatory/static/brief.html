@@ -22,9 +22,14 @@
       min-height: 100vh;
       padding: 2rem 1.25rem 3rem;
     }
-    main { max-width: 760px; margin: 0 auto; }
+    main { max-width: 820px; margin: 0 auto; }
     h1 { margin: 0 0 0.35rem; letter-spacing: -0.02em; }
-    .sub { color: var(--muted); margin-bottom: 1.25rem; }
+    .sub { color: var(--muted); margin-bottom: 0.75rem; }
+    #headline {
+      font-size: 1.25rem;
+      margin: 0 0 1rem;
+      letter-spacing: -0.01em;
+    }
     .row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
     a.button, button {
       display: inline-block;
@@ -36,8 +41,13 @@
       text-decoration: none;
       border: 0;
       cursor: pointer;
+      font-size: 0.95rem;
     }
-    a.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
+    a.secondary, button.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
     .status { color: var(--muted); min-height: 1.25rem; margin-bottom: 1rem; }
     .error { color: #ff8f8f; }
     section {
@@ -50,23 +60,37 @@
     h2 { font-size: 1rem; margin: 0 0 0.75rem; color: var(--muted); }
     ul { list-style: none; padding: 0; margin: 0; }
     li {
-      padding: 0.65rem 0;
+      padding: 0.75rem 0;
       border-top: 1px solid var(--line);
       display: flex;
       justify-content: space-between;
       gap: 1rem;
       flex-wrap: wrap;
+      align-items: center;
     }
     li:first-child { border-top: 0; }
-    .mood { color: var(--accent); white-space: nowrap; }
+    .mood { color: var(--accent); }
+    .track-meta { color: var(--muted); font-size: 0.85rem; }
+    .label-controls {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    select {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.45rem 0.5rem;
+    }
   </style>
 </head>
 <body>
   <main>
     <h1>Your Listening Mood Brief</h1>
-    <p class="sub">Connect Spotify to classify your recent top tracks.</p>
-    
-    <p id="headline" style="font-size:1.25rem;margin:0 0 1rem;letter-spacing:-0.01em;"></p>
+    <p class="sub">Connect Spotify, classify your top tracks, and correct labels to improve accuracy.</p>
+    <p id="headline"></p>
 
     <div class="row">
       <a class="button" href="/auth/login">Connect Spotify</a>
@@ -74,10 +98,11 @@
       <a class="button secondary" href="/auth/logout">Log out</a>
       <a class="button secondary" href="/app">Search lab</a>
     </div>
+
     <p id="status" class="status">Loading...</p>
 
     <section>
-      <h2>Mood mix (short term)</h2>
+      <h2>Mood mix</h2>
       <ul id="summary"></ul>
     </section>
 
@@ -88,35 +113,104 @@
   </main>
 
   <script>
+    const MOODS = [
+      "going_thru_it",
+      "hype",
+      "locked_in",
+      "chill",
+      "in_love",
+      "unclassified",
+    ];
+
     const statusEl = document.getElementById("status");
     const headlineEl = document.getElementById("headline");
     const summaryEl = document.getElementById("summary");
     const tracksEl = document.getElementById("tracks");
     const refreshBtn = document.getElementById("refresh-btn");
-  
+
     function renderBrief(data) {
+      statusEl.classList.remove("error");
       headlineEl.textContent = data.headline || "";
+
       const where = data.from_cache ? "saved brief" : "fresh Spotify pull";
-      statusEl.textContent = `Brief #${data.brief_id} · ${data.count} tracks · ${where}`;
-  
+      const acc = data.accuracy;
+      const accText =
+        acc && acc.labeled
+          ? ` · accuracy ${acc.correct}/${acc.labeled} (${Math.round(acc.accuracy * 100)}%)`
+          : " · accuracy n/a (label some tracks)";
+
+      statusEl.textContent = `Brief #${data.brief_id} · ${data.count} tracks · ${where}${accText}`;
+
       summaryEl.innerHTML = "";
-      for (const row of data.summary) {
+      for (const row of (data.summary || [])) {
         const li = document.createElement("li");
         li.innerHTML = `<span>${row.mood}</span><span class="mood">${row.count}</span>`;
         summaryEl.appendChild(li);
       }
-  
+
       tracksEl.innerHTML = "";
-      for (const t of data.tracks) {
+      for (const t of (data.tracks || [])) {
         const li = document.createElement("li");
-        li.innerHTML = `
-          <span><strong>${t.name}</strong> — ${t.artists}</span>
-          <span class="mood">${t.mood} · ${t.source}</span>
+
+        const left = document.createElement("span");
+        left.innerHTML = `
+          <strong></strong> — <span class="artists"></span><br/>
+          <span class="track-meta"></span>
         `;
+        left.querySelector("strong").textContent = t.name || "(no name)";
+        left.querySelector(".artists").textContent = t.artists || "?";
+        left.querySelector(".track-meta").textContent =
+          `model: ${t.mood || "?"} · ${t.source || "?"}` +
+          (t.mood_human ? ` · human: ${t.mood_human}` : "");
+
+        const controls = document.createElement("span");
+        controls.className = "label-controls";
+
+        const select = document.createElement("select");
+        for (const mood of MOODS) {
+          const opt = document.createElement("option");
+          opt.value = mood;
+          opt.textContent = mood;
+          if ((t.mood_human || t.mood) === mood) opt.selected = true;
+          select.appendChild(opt);
+        }
+
+        const saveBtn = document.createElement("button");
+        saveBtn.type = "button";
+        saveBtn.textContent = "Save";
+        saveBtn.addEventListener("click", async () => {
+          statusEl.classList.remove("error");
+          statusEl.textContent = "Saving label...";
+          try {
+            const res = await fetch("/api/labels", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                spotify_id: t.spotify_id,
+                name: t.name,
+                artists: t.artists,
+                mood_human: select.value,
+              }),
+            });
+            if (!res.ok) {
+              const text = await res.text();
+              throw new Error(`Label save failed (${res.status}): ${text}`);
+            }
+            await loadLatest();
+          } catch (err) {
+            statusEl.textContent = String(err.message || err);
+            statusEl.classList.add("error");
+          }
+        });
+
+        controls.appendChild(select);
+        controls.appendChild(saveBtn);
+        li.appendChild(left);
+        li.appendChild(controls);
         tracksEl.appendChild(li);
       }
     }
-  
+
     async function loadLatest() {
       statusEl.classList.remove("error");
       statusEl.textContent = "Loading saved brief...";
@@ -124,13 +218,12 @@
         const res = await fetch("/api/brief/latest");
         if (res.status === 401) {
           headlineEl.textContent = "";
-          statusEl.textContent = "Not connected yet — click Connect Spotify.";
           summaryEl.innerHTML = "";
           tracksEl.innerHTML = "";
+          statusEl.textContent = "Not connected yet — click Connect Spotify.";
           return;
         }
         if (res.status === 404) {
-          // No snapshot yet → pull live once
           return loadFresh();
         }
         if (!res.ok) throw new Error(`Latest brief failed (${res.status})`);
@@ -140,7 +233,7 @@
         statusEl.classList.add("error");
       }
     }
-  
+
     async function loadFresh() {
       statusEl.classList.remove("error");
       statusEl.textContent = "Refreshing from Spotify...";
@@ -148,6 +241,8 @@
         const res = await fetch("/api/brief");
         if (res.status === 401) {
           headlineEl.textContent = "";
+          summaryEl.innerHTML = "";
+          tracksEl.innerHTML = "";
           statusEl.textContent = "Not connected yet — click Connect Spotify.";
           return;
         }
@@ -158,7 +253,7 @@
         statusEl.classList.add("error");
       }
     }
-  
+
     refreshBtn.addEventListener("click", loadFresh);
     loadLatest();
   </script>

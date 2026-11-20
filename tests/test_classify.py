@@ -11,6 +11,10 @@ def test_party_in_title_is_hype():
     assert classify_track("Party Anthem", 200_000) == "hype"
 
 
+def test_love_in_title_is_in_love():
+    assert classify_track("Crazy in Love", 200_000) == "in_love"
+
+
 def test_short_track_without_keywords_is_locked_in():
     assert classify_track("Partition", 160_000) == "locked_in"
 

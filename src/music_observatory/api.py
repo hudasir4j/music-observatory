@@ -25,6 +25,13 @@ from music_observatory.spotify_oauth import (
     fetch_me,
 )
 
+from music_observatory.labels import (
+    VALID_MOODS,
+    accuracy_report,
+    fetch_labels_map,
+    upsert_label,
+)
+
 from music_observatory.save_brief import save_brief, mood_headline
 
 
@@ -205,6 +212,13 @@ def api_brief(request: Request):
             }
         )
 
+    ids = [t["spotify_id"] for t in tracks if t.get("spotify_id")]
+    human_map = fetch_labels_map(ids)  # import fetch_labels_map too
+    for t in tracks:
+        t["mood_human"] = human_map.get(t["spotify_id"])
+
+    report = accuracy_report(tracks)
+
     brief_id = save_brief(
         spotify_user_id=spotify_user_id,
         display_name=display_name,
@@ -224,6 +238,7 @@ def api_brief(request: Request):
         "headline": mood_headline(summary, display_name),
         "tracks": tracks,
         "from_cache": False,
+        "accuracy": report,
     }
 
 
@@ -284,6 +299,13 @@ def api_brief_latest(request: Request):
         for spotify_id, name, artists, duration_ms, mood, source, ml_score in rows
     ]
 
+    ids = [t["spotify_id"] for t in tracks if t.get("spotify_id")]
+    human_map = fetch_labels_map(ids)  # import fetch_labels_map too
+    for t in tracks:
+        t["mood_human"] = human_map.get(t["spotify_id"])
+
+    report = accuracy_report(tracks)
+
     counts = Counter(t["mood"] for t in tracks if t["mood"])
     summary = [{"mood": m, "count": c} for m, c in counts.most_common()]
 
@@ -297,4 +319,5 @@ def api_brief_latest(request: Request):
         "headline": mood_headline(summary, display_name),
         "tracks": tracks,
         "from_cache": True,
+        "accuracy": report,
     }

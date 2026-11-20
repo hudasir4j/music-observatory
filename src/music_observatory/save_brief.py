@@ -94,6 +94,7 @@ def mood_headline(summary: list[dict], display_name: str | None = None) -> str:
 
     pretty = {
         "going_thru_it": "going through it",
+        "in_love": "in love",
         "locked_in": "locked in",
         "hype": "hype",
         "chill": "chill",

@@ -12,6 +12,11 @@ PROTOTYPES: dict[str, list[str]] = {
         "feeling sad, hurt, and lonely",
         "missing someone and emotional pain",
     ],
+    "in_love": [
+        "falling in love and romance",
+        "crushing hard on someone",
+        "sweet affectionate love song",
+    ],
     "hype": [
         "party dance energy and excitement",
         "hype anthem for the club",
