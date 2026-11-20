@@ -321,3 +321,24 @@ def api_brief_latest(request: Request):
         "from_cache": True,
         "accuracy": report,
     }
+
+class LabelRequest(BaseModel):
+    spotify_id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    artists: str = Field(min_length=1)
+    mood_human: str
+
+
+@app.post("/api/labels")
+def create_label(body: LabelRequest):
+    if body.mood_human not in VALID_MOODS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"mood_human must be one of: {sorted(VALID_MOODS)}",
+        )
+    upsert_label(body.spotify_id, body.name, body.artists, body.mood_human)
+    return {
+        "ok": True,
+        "spotify_id": body.spotify_id,
+        "mood_human": body.mood_human,
+    }
