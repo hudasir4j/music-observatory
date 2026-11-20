@@ -200,7 +200,7 @@ def api_brief(request: Request):
         name = t.get("name") or "(no name)"
         duration_ms = t.get("duration_ms")
         artists = ", ".join(a.get("name", "?") for a in t.get("artists", []))
-        mood, source, score = classify_track_hybrid(name, duration_ms)
+        mood, source, score = classify_track_hybrid(name, duration_ms, artists)
         tracks.append(
             {
                 "spotify_id": t.get("id"),

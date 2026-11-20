@@ -1,0 +1,360 @@
+{
+  "meta": {
+    "name": "Playful Editorial E-commerce",
+    "version": "1.0.0",
+    "purpose": "Context file for AI code generation. Use to build landing pages and storefront sections in a consistent visual language. Content-agnostic: swap in any product, brand, and copy.",
+    "source": "Extracted from a single desktop landing page screenshot. Color values are visually estimated; verify against any official brand file.",
+    "platform": "web",
+    "primaryViewport": "desktop (about 1200px content width)"
+  },
+
+  "designStyle": {
+    "summary": "Bold, warm, playful food/lifestyle e-commerce. Flat color blocking, oversized heavy uppercase headlines, pill-shaped controls, thin black outlines, and small decorative stickers. Feels like modern editorial packaging design translated to the web.",
+    "keywords": ["neo-brutalist-lite", "color-blocked", "playful", "warm", "flat", "pill-shaped", "high-contrast type", "sticker accents", "packaging-led", "retro-modern"],
+    "personality": ["friendly", "confident", "appetizing", "craft-oriented", "energetic"],
+    "principles": [
+      "Large flat fields of saturated, warm color define each section. No gradients.",
+      "Typography does the heavy lifting: very bold, uppercase, tightly set display text against small quiet body text.",
+      "Black is the only neutral for text, borders, and primary buttons. It anchors the loud palette.",
+      "Rounded everything: pills for controls, large radii for cards and image frames.",
+      "Structure through 1px black outlines instead of shadows.",
+      "Product or lifestyle imagery is saturated, studio-lit, and shot on solid colored backdrops that echo the page palette.",
+      "Small decorative marks (stars, flowers, dots, stickers) add personality without cluttering layouts."
+    ],
+    "avoid": [
+      "Drop shadows, glassmorphism, gradients, or blur effects",
+      "Thin or light font weights for headlines",
+      "Cool grays, blues, or corporate neutrals",
+      "Sharp 0px corners on buttons, cards, or image frames",
+      "Dense text blocks or long paragraphs in hero areas",
+      "More than one filled primary button style"
+    ]
+  },
+
+  "colorPalette": {
+    "usageRule": "Each section gets ONE dominant background color. Text and borders are near-black. Accents appear only in small decorative elements or badges.",
+    "core": {
+      "ink": { "hex": "#111111", "role": "Primary text, borders, primary button fill, top strip background, device/frame outline" },
+      "paper": { "hex": "#FFFFFF", "role": "Marquee/ticker band background, text on black buttons" },
+      "cream": { "hex": "#FDEDC4", "role": "Content section background, nav pill background, card interior" },
+      "olive": { "hex": "#96AA5A", "role": "Hero section background" },
+      "blush": { "hex": "#FDB5B9", "role": "Outer page background, large decorative surrounds" }
+    },
+    "accent": {
+      "sun": { "hex": "#F3C13A", "role": "Decorative starburst or highlight shapes on dark/mid backgrounds" },
+      "bubblegum": { "hex": "#F9B4D4", "role": "Sticker or badge fill" },
+      "coral": { "hex": "#F0645F", "role": "Small decorative dots, imagery tint" },
+      "peach": { "hex": "#FFC9A0", "role": "Image backdrop panels" }
+    },
+    "semanticMapping": {
+      "background.page": "blush",
+      "background.section.hero": "olive",
+      "background.section.content": "cream",
+      "background.section.ticker": "paper",
+      "background.section.topStrip": "ink",
+      "surface.nav": "cream",
+      "surface.card": "transparent (inherits cream)",
+      "text.primary": "ink",
+      "text.onDark": "paper",
+      "border.default": "ink",
+      "button.primary.bg": "ink",
+      "button.primary.text": "paper",
+      "decor.star": "sun",
+      "decor.badge": "bubblegum"
+    },
+    "contrastNotes": "Ink on olive, cream, and blush all pass AA for large and body text. Never place cream or white text directly on olive or blush."
+  },
+
+  "typography": {
+    "families": {
+      "display": {
+        "description": "Ultra-heavy grotesque sans, uppercase, slightly condensed feel, tight tracking.",
+        "closestFonts": ["Archivo Black", "Anton", "Familjen Grotesk Bold", "Bricolage Grotesque ExtraBold", "Neue Haas Grotesk Display Black"],
+        "fallback": "Impact, 'Arial Black', sans-serif",
+        "weight": 800
+      },
+      "body": {
+        "description": "Clean neo-grotesque sans, regular weight, small sizes.",
+        "closestFonts": ["Inter", "Instrument Sans", "DM Sans", "Helvetica Neue"],
+        "fallback": "system-ui, -apple-system, sans-serif",
+        "weight": 400
+      },
+      "logo": {
+        "description": "Lowercase italic serif wordmark, small, inside the nav pill. Use only for the brand mark.",
+        "closestFonts": ["Instrument Serif Italic", "Playfair Display Italic", "Fraunces Italic"],
+        "fallback": "Georgia, serif"
+      }
+    },
+    "scale": {
+      "hero.headline": { "family": "display", "size": "clamp(48px, 6vw, 80px)", "lineHeight": 0.95, "letterSpacing": "-0.02em", "transform": "uppercase", "weight": 800, "align": "left", "maxLines": 3 },
+      "card.title": { "family": "display", "size": "clamp(28px, 3vw, 40px)", "lineHeight": 1, "letterSpacing": "-0.01em", "transform": "uppercase", "weight": 800, "align": "center" },
+      "body.hero": { "family": "body", "size": "14px", "lineHeight": 1.4, "transform": "none", "weight": 400 },
+      "nav.link": { "family": "body", "size": "12px", "lineHeight": 1, "letterSpacing": "0.02em", "transform": "uppercase", "weight": 400 },
+      "ticker": { "family": "body", "size": "10px", "lineHeight": 1, "letterSpacing": "0.04em", "transform": "uppercase", "weight": 400 },
+      "button": { "family": "body", "size": "12px", "lineHeight": 1, "letterSpacing": "0.04em", "transform": "uppercase", "weight": 500 },
+      "badge": { "family": "body", "size": "8px", "lineHeight": 1, "transform": "uppercase", "weight": 700 }
+    },
+    "rules": [
+      "Headlines are ALWAYS uppercase, heavy, and tightly leaded (0.9 to 1.0).",
+      "Body and UI text stays small (10 to 14px), and uppercase is used for nav, buttons, and ticker labels.",
+      "Extreme size contrast between display and body is a defining trait. Do not use mid-size headings (20 to 28px) in the hero area.",
+      "Only one headline style per section."
+    ]
+  },
+
+  "spacing": {
+    "baseUnit": 4,
+    "scale": { "xs": 4, "sm": 8, "md": 16, "lg": 24, "xl": 40, "2xl": 64, "3xl": 96 },
+    "sectionPaddingY": { "hero": 48, "content": 48 },
+    "sectionPaddingX": 24,
+    "gaps": {
+      "cardGrid": 24,
+      "cardInternal": 20,
+      "heroColumns": 32,
+      "controlsInline": 8
+    }
+  },
+
+  "shape": {
+    "radius": {
+      "pill": "9999px",
+      "card": "24px",
+      "imageFrame": "20px",
+      "frameOuter": "28px",
+      "badge": "50% (scalloped/flower shape)"
+    },
+    "borders": {
+      "default": "1px solid #111111",
+      "frameOuter": "6px solid #111111",
+      "note": "Cards use a thin outline instead of a shadow. The outer device or page frame uses a thick black stroke."
+    },
+    "elevation": "none. Flat design with zero box-shadows."
+  },
+
+  "layout": {
+    "pageStructure": [
+      {
+        "order": 1,
+        "name": "TopStrip",
+        "description": "Thin full-width near-black band with a row of small, evenly spaced coral star/asterisk dots as decoration.",
+        "height": "40 to 48px",
+        "background": "ink"
+      },
+      {
+        "order": 2,
+        "name": "PageSurround",
+        "description": "Wide blush background that frames the main content container with generous top padding.",
+        "background": "blush"
+      },
+      {
+        "order": 3,
+        "name": "MainFrame",
+        "description": "Central container with thick black outline and large rounded corners. Holds all sections below, clipped to the radius.",
+        "maxWidth": "1200px",
+        "overflow": "hidden"
+      },
+      {
+        "order": 4,
+        "name": "Header",
+        "description": "Floating cream pill navigation bar, inset from the top of the hero by about 16px. Logo left, three centered links, a single icon button (cart/bag) right.",
+        "layout": "flex, space-between, align-center",
+        "height": "36 to 44px",
+        "padding": "0 20px"
+      },
+      {
+        "order": 5,
+        "name": "Hero",
+        "description": "Olive section with 2 columns. Left column: oversized headline, one line of body copy, one black pill CTA, and a decorative star placed overlapping the top-left of the headline. Right column: large rounded image panel.",
+        "grid": "grid-template-columns: 5fr 7fr",
+        "alignment": "left column vertically centered",
+        "background": "olive"
+      },
+      {
+        "order": 6,
+        "name": "Ticker",
+        "description": "Full-width white band with a repeating horizontal sequence of small uppercase words separated by tiny coral icon dots. Infinite marquee.",
+        "height": "28 to 32px",
+        "borders": "none",
+        "background": "paper"
+      },
+      {
+        "order": 7,
+        "name": "ProductGrid",
+        "description": "Cream section holding a 3-column grid of outlined product cards.",
+        "grid": "grid-template-columns: repeat(3, 1fr)",
+        "gap": "24px",
+        "background": "cream"
+      }
+    ],
+    "responsive": {
+      "desktop": "Layout as described.",
+      "tablet": "Hero stacks (text above image), product grid becomes 2 columns, nav links remain.",
+      "mobile": "Single column everywhere, nav collapses to logo + icon button + menu toggle, headline scales via clamp(), ticker continues to scroll, frame border reduces to 3px."
+    }
+  },
+
+  "components": {
+    "navPill": {
+      "background": "cream",
+      "radius": "pill",
+      "border": "none",
+      "padding": "8px 20px",
+      "content": "Logo (italic serif, ~16px) left, 3 uppercase links centered with 32px gap, icon button right.",
+      "iconStyle": "Solid black glyph, 16px, no container."
+    },
+    "primaryButton": {
+      "background": "ink",
+      "color": "paper",
+      "radius": "pill",
+      "padding": "14px 28px",
+      "typography": "button",
+      "border": "none",
+      "hover": "Invert to paper background with ink text and 1px ink border, or lift 2px via translateY.",
+      "width": "auto (hero) or 100% (inside cards)"
+    },
+    "quantityStepper": {
+      "shape": "pill, full card-inner width",
+      "border": "1px solid ink",
+      "background": "transparent",
+      "layout": "minus control left, value centered, plus control right",
+      "height": "32px",
+      "typography": "12px body"
+    },
+    "productCard": {
+      "border": "1px solid ink",
+      "radius": "card",
+      "background": "transparent",
+      "padding": "20px",
+      "layout": "vertical stack, centered",
+      "stack": [
+        "Title (display, uppercase, centered)",
+        "Product image (portrait, transparent or cut-out, ~60% of card width, centered)",
+        "Quantity stepper (pill)",
+        "Add-to-cart button (primary, full width, label + price on one line)"
+      ],
+      "gapBetweenItems": "16 to 20px"
+    },
+    "badgeSticker": {
+      "shape": "scalloped flower or circle with soft wavy edge",
+      "fill": "bubblegum",
+      "size": "56 to 64px",
+      "position": "absolute, overlapping the top-right corner of a card, slightly outside the border",
+      "rotation": "10 to 15deg",
+      "text": "2 short uppercase lines, 8px bold, centered"
+    },
+    "heroImagePanel": {
+      "radius": "imageFrame",
+      "overflow": "hidden",
+      "aspectRatio": "approx 16 / 10",
+      "content": "Studio photo on a split two-tone backdrop (peach and pink) with props in complementary warm tones.",
+      "border": "none"
+    },
+    "decorativeStar": {
+      "shape": "8 to 10 pointed starburst or flower with rounded petals",
+      "fill": "sun",
+      "size": "56 to 72px",
+      "position": "absolute, overlapping hero headline top-left edge",
+      "behindOrAbove": "above background, below text if overlapping"
+    },
+    "ticker": {
+      "items": "single-word uppercase labels, repeated",
+      "separator": "small coral icon dot or mini-star, 12px",
+      "itemGap": "24px",
+      "animation": "linear infinite horizontal scroll, 25 to 40s per loop, pause on hover"
+    },
+    "topStripDots": {
+      "count": "5 to 7, evenly spaced across width",
+      "shape": "small 8 to 10px star/asterisk",
+      "color": "coral"
+    }
+  },
+
+  "imagery": {
+    "photography": {
+      "style": "Studio product photography, soft top light, saturated and warm, solid colored backdrops (often split into two tones), small props such as bowls, cloth, and scattered ingredients.",
+      "composition": "Products clustered at slight angles, one or two tilted, shallow depth of field optional.",
+      "colorMatching": "Backdrop and props should come from the same warm family as the page palette (pink, peach, coral, olive)."
+    },
+    "packagingMockups": {
+      "style": "Cut-out standing pouches or jars with transparent background, centered inside cards.",
+      "artDirection": "Packaging graphics are loud, illustrative, and hand-drawn, with chunky custom lettering and flat color shapes in the same warm palette."
+    },
+    "illustrationAndShapes": "Flat vector, no outlines, no gradients, organic blob and flower shapes."
+  },
+
+  "motion": {
+    "note": "Not visible in a static screenshot. Suggested to match the style.",
+    "principles": ["snappy", "playful", "no heavy easing"],
+    "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "durations": { "hover": "150ms", "reveal": "400ms" },
+    "patterns": [
+      "Ticker marquee: constant linear scroll.",
+      "Buttons: small lift or color invert on hover.",
+      "Decorative star/badge: slow rotation (20 to 30s) or gentle wiggle on hover.",
+      "Cards: translateY(-4px) on hover, no shadow added.",
+      "Section reveal: fade and rise 16px on scroll."
+    ]
+  },
+
+  "cssTokens": {
+    ":root": {
+      "--color-ink": "#111111",
+      "--color-paper": "#FFFFFF",
+      "--color-cream": "#FDEDC4",
+      "--color-olive": "#96AA5A",
+      "--color-blush": "#FDB5B9",
+      "--color-sun": "#F3C13A",
+      "--color-bubblegum": "#F9B4D4",
+      "--color-coral": "#F0645F",
+      "--color-peach": "#FFC9A0",
+      "--font-display": "'Archivo Black', Impact, sans-serif",
+      "--font-body": "'Inter', system-ui, sans-serif",
+      "--font-logo": "'Instrument Serif', Georgia, serif",
+      "--radius-pill": "9999px",
+      "--radius-card": "24px",
+      "--radius-image": "20px",
+      "--radius-frame": "28px",
+      "--border-thin": "1px solid var(--color-ink)",
+      "--border-frame": "6px solid var(--color-ink)",
+      "--space-unit": "4px"
+    }
+  },
+
+  "accessibility": {
+    "contrast": "Keep ink text on light/mid backgrounds. Do not place accent colors behind small text.",
+    "focusState": "3px solid ink outline with 2px offset, plus a sun-colored inner ring on dark surfaces.",
+    "ticker": "Provide prefers-reduced-motion fallback (static, wrapped list) and aria-hidden on duplicated items.",
+    "touchTargets": "Minimum 40px height for pills and steppers on mobile.",
+    "decorative": "Stars, dots, and stickers are aria-hidden."
+  },
+
+  "aiInstructions": {
+    "howToUse": "When generating a page or component, follow these rules strictly so output stays consistent with this system.",
+    "buildOrder": [
+      "1. Set page and section backgrounds with flat palette colors only.",
+      "2. Establish the outer frame (thick ink border, large radius, overflow hidden).",
+      "3. Build the floating pill header.",
+      "4. Build a two-column hero: giant uppercase display headline plus one short line of body copy plus one primary pill CTA, paired with a rounded image panel.",
+      "5. Add the full-width ticker band.",
+      "6. Build the card grid with thin ink outlines, centered display titles, centered product images, pill stepper, and full-width black pill button.",
+      "7. Add decorative stars, dots, and a sticker badge last, using absolute positioning."
+    ],
+    "hardRules": [
+      "No box-shadows, gradients, or blur.",
+      "All buttons and inputs are fully pill-shaped.",
+      "Headlines are uppercase, weight 800+, line-height 0.9 to 1.0.",
+      "Use only ink for text and borders. Accent colors are decoration only.",
+      "Every section has exactly one background color from the palette.",
+      "Cards are outlined (1px ink) and have a transparent fill.",
+      "Keep copy minimal: short headline, one supporting line, one CTA per hero.",
+      "Use CSS variables from cssTokens for every color, radius, and font."
+    ],
+    "variationsAllowed": [
+      "Swap the section background palette to any warm saturated trio while keeping ink for text and borders.",
+      "Change number of cards (2 to 4) while keeping equal-width columns.",
+      "Flip hero columns (image left, text right).",
+      "Replace the starburst with any flat organic shape in an accent color."
+    ],
+    "placeholderGuidance": "Use neutral placeholders for content, e.g. 'HEADLINE WORD', 'Short supporting sentence.', 'PRIMARY ACTION', '$00'. Use solid-color rounded rectangles for missing imagery."
+  }
+}
