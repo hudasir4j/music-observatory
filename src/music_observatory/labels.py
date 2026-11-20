@@ -90,3 +90,36 @@ def accuracy_report(predicted: list[dict]) -> dict:
         "accuracy": (correct / total) if total else None,
         "examples": compared,
     }
+def upsert_labels(labels: list[dict]) -> int:
+    """
+    Upsert many human labels.
+    Each dict: spotify_id, name, artists, mood_human
+    Returns how many were written.
+    """
+    if not labels:
+        return 0
+
+    for row in labels:
+        if row["mood_human"] not in VALID_MOODS:
+            raise ValueError(f"Invalid mood_human: {row['mood_human']}")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.executemany(
+                """
+                INSERT INTO track_mood_labels (spotify_id, name, artists, mood_human)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (spotify_id)
+                DO UPDATE SET
+                    name = EXCLUDED.name,
+                    artists = EXCLUDED.artists,
+                    mood_human = EXCLUDED.mood_human,
+                    labeled_at = NOW()
+                """,
+                [
+                    (r["spotify_id"], r["name"], r["artists"], r["mood_human"])
+                    for r in labels
+                ],
+            )
+        conn.commit()
+    return len(labels)

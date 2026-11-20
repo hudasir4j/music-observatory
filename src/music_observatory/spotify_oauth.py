@@ -62,7 +62,7 @@ def exchange_code_for_token(code: str) -> dict:
     response.raise_for_status()
     return response.json()
 
-def fetch_top_tracks(access_token: str, limit: int = 20, time_range: str = "short term") -> list[dict]:
+def fetch_top_tracks(access_token: str, limit: int = 50, time_range: str = "short term") -> list[dict]:
     response = requests.get(
         TOP_TRACKS_URL,
         headers = {"Authorization": f"Bearer {access_token}"},

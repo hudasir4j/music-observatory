@@ -30,6 +30,7 @@ from music_observatory.labels import (
     accuracy_report,
     fetch_labels_map,
     upsert_label,
+    upsert_labels,
 )
 
 from music_observatory.save_brief import save_brief, mood_headline
@@ -192,7 +193,7 @@ def api_brief(request: Request):
     spotify_user_id = me["id"]
     display_name = me.get("display_name")
 
-    items = fetch_top_tracks(access_token, limit=20, time_range=time_range)
+    items = fetch_top_tracks(access_token, limit=50, time_range=time_range)
 
     tracks = []
     for t in items:
@@ -342,3 +343,31 @@ def create_label(body: LabelRequest):
         "spotify_id": body.spotify_id,
         "mood_human": body.mood_human,
     }
+
+class BulkLabelRequest(BaseModel):
+    labels: list[LabelRequest]
+
+
+@app.post("/api/labels/bulk")
+def create_labels_bulk(body: BulkLabelRequest):
+    rows = [
+        {
+            "spotify_id": item.spotify_id,
+            "name": item.name,
+            "artists": item.artists,
+            "mood_human": item.mood_human,
+        }
+        for item in body.labels
+    ]
+    # Validate moods (LabelRequest doesn't enforce the set by itself)
+    for row in rows:
+        if row["mood_human"] not in VALID_MOODS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid mood_human: {row['mood_human']}",
+            )
+    try:
+        count = upsert_labels(rows)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"ok": True, "saved": count}

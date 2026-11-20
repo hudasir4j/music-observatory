@@ -97,6 +97,7 @@
       <button type="button" id="refresh-btn">Refresh from Spotify</button>
       <a class="button secondary" href="/auth/logout">Log out</a>
       <a class="button secondary" href="/app">Search lab</a>
+      <button type="button" id="save-all-btn">Save all labels</button>
     </div>
 
     <p id="status" class="status">Loading...</p>
@@ -128,9 +129,13 @@
     const tracksEl = document.getElementById("tracks");
     const refreshBtn = document.getElementById("refresh-btn");
 
+    const saveAllBtn = document.getElementById("save-all-btn");
+    let currentTracks = [];
+
     function renderBrief(data) {
       statusEl.classList.remove("error");
       headlineEl.textContent = data.headline || "";
+      currentTracks = data.tracks || [];
 
       const where = data.from_cache ? "saved brief" : "fresh Spotify pull";
       const acc = data.accuracy;
@@ -149,7 +154,7 @@
       }
 
       tracksEl.innerHTML = "";
-      for (const t of (data.tracks || [])) {
+      for (const t of currentTracks) {
         const li = document.createElement("li");
 
         const left = document.createElement("span");
@@ -253,6 +258,53 @@
         statusEl.classList.add("error");
       }
     }
+
+    async function saveAllLabels() {
+      statusEl.classList.remove("error");
+      if (!currentTracks.length) {
+        statusEl.textContent = "No tracks to label.";
+        return;
+      }
+
+      const selects = tracksEl.querySelectorAll("select");
+      if (selects.length !== currentTracks.length) {
+        statusEl.textContent = "Track list out of sync — refresh and try again.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      const labels = [];
+      selects.forEach((select, i) => {
+        const t = currentTracks[i];
+        labels.push({
+          spotify_id: t.spotify_id,
+          name: t.name,
+          artists: t.artists,
+          mood_human: select.value,
+        });
+      });
+
+      statusEl.textContent = `Saving ${labels.length} labels...`;
+      try {
+        const res = await fetch("/api/labels/bulk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ labels }),
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Bulk save failed (${res.status}): ${text}`);
+        }
+        const data = await res.json();
+        statusEl.textContent = `Saved ${data.saved} labels. Reloading...`;
+        await loadLatest();
+      } catch (err) {
+        statusEl.textContent = String(err.message || err);
+        statusEl.classList.add("error");
+      }
+    }
+
+    saveAllBtn.addEventListener("click", saveAllLabels);
 
     refreshBtn.addEventListener("click", loadFresh);
     loadLatest();
